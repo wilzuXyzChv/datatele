@@ -4,8 +4,8 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local EXPLOIT_URL = "https://raw.githubusercontent.com/wilzuXyzChv/datatele/refs/heads/main/FishingAuto_Exploit.lua"
-local LOCAL_URL   = "https://raw.githubusercontent.com/wilzuXyzChv/datatele/refs/heads/main/FishingAuto_Local.lua"
+local EXPLOIT_URL = "https://raw.githubusercontent.com/wilzuXyzChv/datatele/main/FishingAuto_Exploit.lua"
+local LOCAL_URL   = "https://raw.githubusercontent.com/wilzuXyzChv/datatele/main/FishingAuto_Local.lua"
 
 local function safeGet(url)
     local ok, res = pcall(function() return game:HttpGet(url) end)
