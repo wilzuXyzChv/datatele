@@ -16,7 +16,7 @@ mainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
 mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
-mainFrame.Draggable = true -- bisa digeser
+mainFrame.Draggable = true
 mainFrame.Parent = screenGui
 
 --== Shadow ==--
@@ -63,34 +63,10 @@ hideButton.Font = Enum.Font.GothamBold
 hideButton.TextSize = 22
 hideButton.Parent = titleBar
 
---== Isi GUI ==--
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(0, 180, 0, 50)
-button.Position = UDim2.new(0.5, -90, 0.5, -25)
-button.BackgroundColor3 = Color3.fromRGB(90, 70, 255)
-button.Text = "tekan me"
-button.TextColor3 = Color3.fromRGB(255, 255, 255)
-button.TextSize = 20
-button.Font = Enum.Font.GothamBold
-button.AutoButtonColor = false
-button.Parent = mainFrame
-
-local btnCorner = Instance.new("UICorner")
-btnCorner.CornerRadius = UDim.new(0, 12)
-btnCorner.Parent = button
-
-local btnGradient = Instance.new("UIGradient")
-btnGradient.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(90, 70, 255)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(140, 100, 255))
-}
-btnGradient.Rotation = 45
-btnGradient.Parent = button
-
---== Text Box Key ==--
+--== Input Key ==--
 local keyTextBox = Instance.new("TextBox")
 keyTextBox.Size = UDim2.new(0, 180, 0, 30)
-keyTextBox.Position = UDim2.new(0.5, -90, 0.2, -15)
+keyTextBox.Position = UDim2.new(0.5, -90, 0.5, -15)
 keyTextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
 keyTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 keyTextBox.Font = Enum.Font.Gotham
@@ -104,73 +80,82 @@ local keyCorner = Instance.new("UICorner")
 keyCorner.CornerRadius = UDim.new(0, 8)
 keyCorner.Parent = keyTextBox
 
---== Key Validation ==--
-local validKey = "wilzu23" -- Ganti dengan key yang valid
+--== Variabel Validasi ==--
+local validKey = "wilzu23"
 local hasKey = false
+local autoOn = false
 
+--== Tombol Auto Perfect (awal: disembunyikan) ==--
+local autoButton = Instance.new("TextButton")
+autoButton.Size = UDim2.new(0, 200, 0, 50)
+autoButton.Position = UDim2.new(0.5, -100, 0.5, -25)
+autoButton.BackgroundColor3 = Color3.fromRGB(90, 70, 255)
+autoButton.Text = "Auto Perfect: OFF"
+autoButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoButton.TextSize = 18
+autoButton.Font = Enum.Font.GothamBold
+autoButton.Visible = false
+autoButton.Parent = mainFrame
+
+local autoCorner = Instance.new("UICorner")
+autoCorner.CornerRadius = UDim.new(0, 12)
+autoCorner.Parent = autoButton
+
+local btnGradient = Instance.new("UIGradient")
+btnGradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(90, 70, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(140, 100, 255))
+}
+btnGradient.Rotation = 45
+btnGradient.Parent = autoButton
+
+--== Tween helper ==--
+local function tween(obj, info, props)
+	TweenService:Create(obj, info, props):Play()
+end
+
+--== Validasi Key ==--
 local function validateKey()
 	if keyTextBox.Text == validKey then
 		hasKey = true
+		print("✅ Key Valid!")
+		tween(keyTextBox, TweenInfo.new(0.3, Enum.EasingStyle.Sine), {Transparency = 1})
+		wait(0.3)
 		keyTextBox:Destroy()
-		print("Key Valid!")
-		-- Tambahin fungsi setelah key valid di sini
+		autoButton.Visible = true
 	else
-		print("Key Invalid!")
+		print("❌ Key Invalid!")
 	end
 end
 
 keyTextBox.FocusLost:Connect(validateKey)
 
---== Auto Perfect Fish It ==--
+--== Sistem Auto Perfect Fish It ==--
 local fishingService = game:GetService("ReplicatedStorage"):WaitForChild("FishingService")
 
-local function autoPerfectFish()
-	if not hasKey then return end -- Cek apakah key valid
-	
-	local mouse = player:GetMouse()
-	local buttonDown = false
-	
-	UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 and not gameProcessedEvent then
-			buttonDown = true
-			while buttonDown and hasKey do
-				fishingService.PerfectCatch:FireServer()
-				wait(0.05) -- Sesuaikan delay jika perlu
-			end
+autoButton.MouseButton1Click:Connect(function()
+	if not hasKey then return end
+	autoOn = not autoOn
+	autoButton.Text = autoOn and "Auto Perfect: ON" or "Auto Perfect: OFF"
+	print("Auto Perfect:", autoOn)
+
+	task.spawn(function()
+		while autoOn and hasKey do
+			fishingService.PerfectCatch:FireServer()
+			wait(0.05)
 		end
 	end)
-	
-	UserInputService.InputEnded:Connect(function(input, gameProcessedEvent)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			buttonDown = false
-		end
-	end)
-end
-
-autoPerfectFish()
-
---== Animasi Button ==--
-local function tween(obj, info, props)
-	TweenService:Create(obj, info, props):Play()
-end
-
-button.MouseEnter:Connect(function()
-	tween(button, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
-		Size = UDim2.new(0, 190, 0, 55)
-	})
 end)
 
-button.MouseLeave:Connect(function()
-	tween(button, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
-		Size = UDim2.new(0, 180, 0, 50)
-	})
+--== Hover Animation Tombol ==--
+autoButton.MouseEnter:Connect(function()
+	tween(autoButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Size = UDim2.new(0, 210, 0, 55)})
+end)
+autoButton.MouseLeave:Connect(function()
+	tween(autoButton, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Size = UDim2.new(0, 200, 0, 50)})
 end)
 
-button.MouseButton1Click:Connect(function()
-	print("Tombol modern ditekan!")
-end)
-
---== Fitur Hide/Show ==--
+--== Hide/Show GUI ==--
 local isHidden = false
 local tweenTime = 0.3
 
@@ -187,7 +172,7 @@ hideButton.MouseButton1Click:Connect(function()
 		mainFrame.Visible = true
 		tween(mainFrame, TweenInfo.new(tweenTime, Enum.EasingStyle.Sine), {
 			Position = UDim2.new(0.5, -150, 0.5, -100),
-			BackgroundTransparency = 0.05
+			BackgroundTransparency = 0
 		})
 		isHidden = false
 	end
